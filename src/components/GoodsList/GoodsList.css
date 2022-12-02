@@ -1,5 +1,6 @@
 .goods-list {
     display: flex;        
-    flex-wrap: wrap;   
-    margin: 0 -15px; 
+    flex-wrap: wrap; 
+    max-width: 1216px;  
+    margin: 0 auto; 
 }
