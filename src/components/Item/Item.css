@@ -1,0 +1,16 @@
+.update-form {
+    height: 280px;
+    display: flex;
+    flex-direction: column;    
+    width: 274.3px;
+    margin: 0 15px;
+    background-color: #2d2e32;
+    border-radius: 4px;
+    margin-bottom: 25px;
+}
+
+.update-buttons {    
+    display: 'flex';
+    justify-content: 'space-evenly';
+    margin: 10px auto;
+}

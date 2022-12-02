@@ -1,0 +1,13 @@
+.form {
+    display: flex;
+    flex-direction: column;    
+    width: 500px;
+    margin: 0 auto;
+    background-color: #2d2e32;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.buttons {       
+    margin: 15px auto;
+}
