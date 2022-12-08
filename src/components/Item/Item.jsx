@@ -13,8 +13,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import LinearProgress from '@mui/material/LinearProgress';
-import { React, useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
+import { connect } from 'react-redux';
 import {
   selectIsRemoveLoading,
   selectIsUpdateLoading,
@@ -73,199 +73,239 @@ const styles = {
   },
 };
 
-export const Item = ({ item, loading }) => {
-  const [itemNew, setItemNew] = useState(item);
-  const [updatedItem, setUpdatedItem] = useState(null);
-  const [updateCategoryError, setUpdateCategoryError] = useState(false);
-  const [updateTitleError, setUpdateTitleError] = useState(false);
-  const [updateDescriptionError, setUpdateDescriptionError] = useState(false);
-  const [updateWeightError, setUpdateWeightError] = useState(false);
-  const isRemoveGoodsLoading = useSelector(selectIsRemoveLoading);
-  const isUpdateGoodsLoading = useSelector(selectIsUpdateLoading);
+class Item extends React.Component {
+  constructor(props) {
+    super(props);
+    const { item } = this.props;
+    this.state = {
+      itemNew: item,
+      updatedItem: null,
+      updateCategoryError: false,
+      updateTitleError: false,
+      updateDescriptionError: false,
+      updateWeightError: false,
+    };
+  }
 
-  const dispatch = useDispatch();
-
-  const onInputModification = useCallback(
-    (e) => {
-      setItemNew({
+  onInputModification = (e) => {
+    const { itemNew } = this.state;
+    this.setState({
+      itemNew: {
         ...itemNew,
         [e.target.name]: e.target.value,
-      });
-    },
-    [itemNew],
-  );
+      },
+    });
+  };
 
-  const onRemoveClick = useCallback(() => {
-    dispatch(removeGoodsThunk(item.id));
-  }, [dispatch]);
+  onRemoveClick = () => {
+    const { dispatchRemoveGoodsThunk, item } = this.props;
+    dispatchRemoveGoodsThunk(item.id);
+  };
 
-  const onEditClick = useCallback(() => {
-    setUpdatedItem(updatedItem === item.id ? null : item.id);
-  }, [updatedItem]);
+  onEditClick = () => {
+    const { updatedItem } = this.state;
+    const { item } = this.props;
+    this.setState({
+      updatedItem: updatedItem === item.id ? null : item.id,
+    });
+  };
 
-  const onSave = useCallback(() => {
+  onSave = () => {
+    const { itemNew } = this.state;
     if (itemNew.category
       && itemNew.title
       && itemNew.description
       && itemNew.weight) {
-      dispatch(updateGoodsThunk(itemNew));
-      setUpdatedItem(undefined);
-      setUpdateCategoryError(false);
-      setUpdateTitleError(false);
-      setUpdateDescriptionError(false);
-      setUpdateWeightError(false);
+      const { dispatchUpdateGoodsThunk } = this.props;
+      dispatchUpdateGoodsThunk(itemNew);
+      this.setState({
+        updatedItem: undefined,
+        updateCategoryError: false,
+        updateTitleError: false,
+        updateDescriptionError: false,
+        updateWeightError: false,
+      });
     } else {
       if (itemNew.category === '') {
-        setUpdateCategoryError(true);
+        this.setState({
+          updateCategoryError: true,
+        });
       }
       if (itemNew.title === '') {
-        setUpdateTitleError(true);
+        this.setState({
+          updateTitleError: true,
+        });
       }
       if (itemNew.description === '') {
-        setUpdateDescriptionError(true);
+        this.setState({
+          updateDescriptionError: true,
+        });
       }
       if (itemNew.weight === '') {
-        setUpdateWeightError(true);
+        this.setState({
+          updateWeightError: true,
+        });
       }
     }
-  }, [dispatch, itemNew]);
+  };
 
-  const onCancel = useCallback(() => {
-    setUpdatedItem(undefined);
-    setItemNew(item);
-  }, [item]);
+  onCancel = () => {
+    const { item } = this.props;
+    this.setState({
+      updatedItem: undefined,
+      itemNew: item,
+    });
+  };
 
-  if (loading) {
-    return <LinearProgress sx={styles.progress} />;
-  }
+  render() {
+    const {
+      item,
+      loading,
+      isRemoveGoodsLoading,
+      isUpdateGoodsLoading,
+    } = this.props;
 
-  return (
-    <div>
-      {item.id === updatedItem ? (
-        <div className="update-form">
-          <TextField
-            required
-            name="category"
-            id="filled-basic"
-            label="Category"
-            variant="filled"
-            onChange={onInputModification}
-            value={itemNew.category}
-            error={updateCategoryError}
-          />
-          <TextField
-            required
-            name="title"
-            id="filled-basic"
-            label="Title"
-            variant="filled"
-            onChange={onInputModification}
-            value={itemNew.title}
-            error={updateTitleError}
-          />
-          <TextField
-            required
-            name="description"
-            id="filled-basic"
-            label="Description"
-            variant="filled"
-            onChange={onInputModification}
-            value={itemNew.description}
-            error={updateDescriptionError}
-          />
-          <TextField
-            required
-            type="number"
-            name="weight"
-            id="filled-basic"
-            label="Weight"
-            variant="filled"
-            onChange={onInputModification}
-            value={itemNew.weight}
-            error={updateWeightError}
-          />
+    const {
+      updatedItem,
+      itemNew,
+      updateCategoryError,
+      updateTitleError,
+      updateDescriptionError,
+      updateWeightError,
+    } = this.state;
 
-          <Box sx={styles.updateButtonsWrapper}>
-            <Button
-              sx={styles.button}
-              variant="contained"
-              startIcon={<CheckCircleOutlineIcon />}
-              onClick={onSave}
-            >
-              Save
-            </Button>
-            <Button
-              sx={styles.button}
-              variant="contained"
-              color="secondary"
-              startIcon={<HighlightOffIcon />}
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
+    if (loading) {
+      return <LinearProgress sx={styles.progress} />;
+    }
+
+    return (
+      <div>
+        {item.id === updatedItem ? (
+          <div className="update-form">
+            <TextField
+              required
+              name="category"
+              id="filled-basic"
+              label="Category"
+              variant="filled"
+              onChange={this.onInputModification}
+              value={itemNew.category}
+              error={updateCategoryError}
+            />
+            <TextField
+              required
+              name="title"
+              id="filled-basic"
+              label="Title"
+              variant="filled"
+              onChange={this.onInputModification}
+              value={itemNew.title}
+              error={updateTitleError}
+            />
+            <TextField
+              required
+              name="description"
+              id="filled-basic"
+              label="Description"
+              variant="filled"
+              onChange={this.onInputModification}
+              value={itemNew.description}
+              error={updateDescriptionError}
+            />
+            <TextField
+              required
+              type="number"
+              name="weight"
+              id="filled-basic"
+              label="Weight"
+              variant="filled"
+              onChange={this.onInputModification}
+              value={itemNew.weight}
+              error={updateWeightError}
+            />
+
+            <Box sx={styles.updateButtonsWrapper}>
+              <Button
+                sx={styles.button}
+                variant="contained"
+                startIcon={<CheckCircleOutlineIcon />}
+                onClick={this.onSave}
+              >
+                Save
+              </Button>
+              <Button
+                sx={styles.button}
+                variant="contained"
+                color="secondary"
+                startIcon={<HighlightOffIcon />}
+                onClick={this.onCancel}
+              >
+                Cancel
+              </Button>
+            </Box>
+          </div>
+        ) : (
+          <Box sx={styles.wrapper}>
+            <Card sx={[styles.card, { boxShadow: 10 }]}>
+              <CardContent sx={styles.cardContent}>
+                <Typography
+                  sx={styles.category}
+                  color="primary"
+                  variant="button"
+                  gutterBottom
+                >
+                  {item.category}
+                </Typography>
+                <Typography
+                  sx={styles.title}
+                  variant="h5"
+                  component="h2"
+                  align="center"
+                >
+                  {item.title}
+                </Typography>
+                <Typography
+                  color="text.secondary"
+                  variant="h6"
+                  align="center"
+                  gutterBottom
+                >
+                  {item.description}
+                </Typography>
+                <Typography color="text.secondary" variant="body1" align="center">
+                  {item.weight}
+                </Typography>
+              </CardContent>
+              {isRemoveGoodsLoading[item.id] || isUpdateGoodsLoading[item.id] ? (
+                <LinearProgress sx={styles.progressActions} />
+              ) : (
+                <CardActions sx={styles.buttonsWrapper}>
+                  <Button
+                    sx={styles.button}
+                    variant="contained"
+                    startIcon={<EditIcon />}
+                    onClick={this.onEditClick}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    sx={styles.button}
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<DeleteIcon />}
+                    onClick={this.onRemoveClick}
+                  >
+                    Remove
+                  </Button>
+                </CardActions>
+              )}
+            </Card>
           </Box>
-        </div>
-      ) : (
-        <Box sx={styles.wrapper}>
-          <Card sx={[styles.card, { boxShadow: 10 }]}>
-            <CardContent sx={styles.cardContent}>
-              <Typography
-                sx={styles.category}
-                color="primary"
-                variant="button"
-                gutterBottom
-              >
-                {item.category}
-              </Typography>
-              <Typography
-                sx={styles.title}
-                variant="h5"
-                component="h2"
-                align="center"
-              >
-                {item.title}
-              </Typography>
-              <Typography
-                color="text.secondary"
-                variant="h6"
-                align="center"
-                gutterBottom
-              >
-                {item.description}
-              </Typography>
-              <Typography color="text.secondary" variant="body1" align="center">
-                {item.weight}
-              </Typography>
-            </CardContent>
-            {isRemoveGoodsLoading[item.id] || isUpdateGoodsLoading[item.id] ? (
-              <LinearProgress sx={styles.progressActions} />
-            ) : (
-              <CardActions sx={styles.buttonsWrapper}>
-                <Button
-                  sx={styles.button}
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  onClick={onEditClick}
-                >
-                  Edit
-                </Button>
-                <Button
-                  sx={styles.button}
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<DeleteIcon />}
-                  onClick={onRemoveClick}
-                >
-                  Remove
-                </Button>
-              </CardActions>
-            )}
-          </Card>
-        </Box>
-      )}
-    </div>
-  );
-};
+        )}
+      </div>
+    );
+  }
+}
 
 Item.propTypes = {
   item: PropTypes.shape({
@@ -276,4 +316,20 @@ Item.propTypes = {
     category: PropTypes.string.isRequired,
   }),
   loading: PropTypes.bool,
+  dispatchRemoveGoodsThunk: PropTypes.func,
+  dispatchUpdateGoodsThunk: PropTypes.func,
+  isRemoveGoodsLoading: PropTypes.objectOf(PropTypes.bool),
+  isUpdateGoodsLoading: PropTypes.objectOf(PropTypes.bool),
 };
+
+const mapStateToProps = (state) => ({
+  isRemoveGoodsLoading: selectIsRemoveLoading(state),
+  isUpdateGoodsLoading: selectIsUpdateLoading(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  dispatchUpdateGoodsThunk: (item) => dispatch(updateGoodsThunk(item)),
+  dispatchRemoveGoodsThunk: (id) => dispatch(removeGoodsThunk(id)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Item);

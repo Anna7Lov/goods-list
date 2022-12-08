@@ -30,5 +30,6 @@ module.exports = {
       }
     }],
     'react/button-has-type': ['off'],
+    'react/prefer-stateless-function': ['off'],
   },
 };

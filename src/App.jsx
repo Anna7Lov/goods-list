@@ -1,6 +1,6 @@
 import React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Dashboard } from './components/Dashboard/Dashboard';
+import Dashboard from './components/Dashboard/Dashboard';
 import './App.css';
 
 const theme = createTheme({
@@ -18,12 +18,16 @@ const theme = createTheme({
   },
 });
 
-const App = () => (
-  <ThemeProvider theme={theme}>
-    <div className="App">
-      <Dashboard />
-    </div>
-  </ThemeProvider>
-);
+class App extends React.Component {
+  render() {
+    return (
+      <ThemeProvider theme={theme}>
+        <div className="App">
+          <Dashboard />
+        </div>
+      </ThemeProvider>
+    );
+  }
+}
 
 export default App;

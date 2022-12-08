@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import {
   Typography,
@@ -8,8 +9,8 @@ import {
   Select,
 }
   from '@mui/material';
-import { React, useCallback, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React from 'react';
+import { connect } from 'react-redux';
 import { fetchAllGoodsThunk } from '../../rdx/goods/thunks';
 import {
   selectIsAllGoodsLoading,
@@ -19,7 +20,7 @@ import {
   selectIsAddingLoading,
 } from '../../rdx/goods/selectors';
 import { filterGoods, sortGoods } from '../../rdx/goods/actions';
-import { NewItemForm } from '../NewItemForm/NewItemForm';
+import NewItemForm from '../NewItemForm/NewItemForm';
 import { GoodsList } from '../GoodsList/GoodsList';
 
 const styles = {
@@ -56,83 +57,117 @@ const dropDownList = [
   { id: 9, value: '', name: 'Default' },
 ];
 
-export const Dashboard = () => {
-  const isLoading = useSelector(selectIsAllGoodsLoading);
-  const error = useSelector(selectIsAllGoodsFailed);
-  const sort = useSelector(selectSort);
-  const goods = useSelector(selectGoodsToDisplay);
-  const isAddingItemLoading = useSelector(selectIsAddingLoading);
+class Dashboard extends React.Component {
+  componentDidMount() {
+    this.fetchAllGoodsThunkCallback();
+  }
 
-  const dispatch = useDispatch();
+  fetchAllGoodsThunkCallback = () => {
+    const { dispatchFetchAllGoodsThunk } = this.props;
+    dispatchFetchAllGoodsThunk();
+  };
 
-  const fetchAllGoodsThunkCallback = useCallback(() => {
-    dispatch(fetchAllGoodsThunk());
-  }, [dispatch]);
+  onSearch = (e) => {
+    const { dispatchFilterGoods } = this.props;
+    dispatchFilterGoods(e.target.value);
+  };
 
-  useEffect(() => {
-    fetchAllGoodsThunkCallback();
-  }, []);
+  onSort = (e) => {
+    const { dispatchSortGoods } = this.props;
+    dispatchSortGoods(e.target.value);
+  };
 
-  const onSearch = useCallback(
-    (e) => {
-      dispatch(filterGoods(e.target.value));
-    },
-    [dispatch],
-  );
+  render() {
+    const {
+      isLoading,
+      error,
+      sort,
+      goods,
+      isAddingItemLoading,
+    } = this.props;
 
-  const onSort = useCallback(
-    (e) => {
-      dispatch(sortGoods(e.target.value));
-    },
-    [dispatch],
-  );
+    return (
+      <div className="dashboard">
+        {isLoading ? (
+          <LinearProgress sx={styles.progress} />
+        ) : !isLoading && !error ? (
+          <div>
+            <NewItemForm />
 
-  return (
-    <div className="dashboard">
-      {isLoading ? (
-        <LinearProgress sx={styles.progress} />
-      ) : !isLoading && !error ? (
-        <div>
-          <NewItemForm />
-
-          <TextField
-            fullWidth
-            sx={styles.filter}
-            label="Search by Title..."
-            variant="filled"
-            onChange={onSearch}
-          />
-
-          <FormControl sx={styles.formControl} variant="filled">
-            <InputLabel id="sort">Sort by</InputLabel>
-            <Select
-              labelId="sort"
+            <TextField
               fullWidth
-              onChange={onSort}
-              value={sort}
-            >
-              {dropDownList.map((item) => (
-                <MenuItem key={item.id} sx={styles.menuItem} value={item.value}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              sx={styles.filter}
+              label="Search by Title..."
+              variant="filled"
+              onChange={this.onSearch}
+            />
 
-          <GoodsList goods={goods} isItemCreating={isAddingItemLoading} />
-        </div>
+            <FormControl sx={styles.formControl} variant="filled">
+              <InputLabel id="sort">Sort by</InputLabel>
+              <Select
+                labelId="sort"
+                fullWidth
+                onChange={this.onSort}
+                value={sort}
+              >
+                {dropDownList.map((item) => (
+                  <MenuItem key={item.id} sx={styles.menuItem} value={item.value}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-      ) : (
+            <GoodsList goods={goods} isItemCreating={isAddingItemLoading} />
+          </div>
 
-        <Typography
-          variant="h5"
-          component="h2"
-          color="secondary"
-          align="center"
-        >
-          {error.message}
-        </Typography>
-      )}
-    </div>
-  );
+        ) : (
+
+          <Typography
+            variant="h5"
+            component="h2"
+            color="secondary"
+            align="center"
+          >
+            {error.message}
+          </Typography>
+        )}
+      </div>
+    );
+  }
+}
+
+Dashboard.propTypes = {
+  dispatchFetchAllGoodsThunk: PropTypes.func,
+  dispatchFilterGoods: PropTypes.func,
+  dispatchSortGoods: PropTypes.func,
+  isLoading: PropTypes.bool,
+  error: PropTypes.string,
+  sort: PropTypes.string,
+  goods: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      weight: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+      category: PropTypes.string.isRequired,
+    }),
+  ),
+  isAddingItemLoading: PropTypes.bool,
 };
+
+const mapStateToProps = (state) => ({
+  isLoading: selectIsAllGoodsLoading(state),
+  error: selectIsAllGoodsFailed(state),
+  sort: selectSort(state),
+  goods: selectGoodsToDisplay(state),
+  isAddingItemLoading: selectIsAddingLoading(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  dispatchFetchAllGoodsThunk: () => dispatch(fetchAllGoodsThunk()),
+  dispatchFilterGoods: (filter) => dispatch(filterGoods(filter)),
+  dispatchSortGoods: (sort) => dispatch(sortGoods(sort)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);
