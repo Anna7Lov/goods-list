@@ -22,6 +22,7 @@ const initialState = {
   isAddingLoading: false,
   addingError: null,
   removeError: null,
+  updateError: null,
   isRemoveLoading: {},
   isUpdateLoading: {},
   filter: '',
