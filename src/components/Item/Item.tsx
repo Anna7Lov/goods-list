@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import {
   Box,
   Card,
@@ -13,59 +12,78 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import LinearProgress from '@mui/material/LinearProgress';
-import { React, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectIsRemoveLoading,
   selectIsUpdateLoading,
 } from '../../rdx/goods/selectors';
 import { removeGoodsThunk, updateGoodsThunk } from '../../rdx/goods/thunks';
+import { ItemModel } from '../../services/goodsTypes';
 import './Item.css';
 
-const styles = {
+interface ItemProps {
+  item?: ItemModel;
+  loading?: boolean;
+}
+
+interface ItemStyles {
+  progress: React.CSSProperties;
+  wrapper: React.CSSProperties;
+  updateButtonsWrapper: React.CSSProperties;
+  card: React.CSSProperties;
+  cardContent: React.CSSProperties;
+  category: React.CSSProperties;
+  title: React.CSSProperties;
+  progressActions: React.CSSProperties;
+  buttonsWrapper: React.CSSProperties;
+  button: React.CSSProperties;
+}
+
+const styles: ItemStyles = {
   progress: {
     width: 150,
-    m: '105.5px 62.5px 105.5px 77.5px',
+    margin: '105.5px 62.5px 105.5px 77.5px',
   },
   wrapper: {
     width: 304,
-    p: '0 15px',
+    padding: '0 15px',
   },
   updateButtonsWrapper: {
     display: 'flex',
     justifyContent: 'space-evenly',
-    m: '10px 0',
+    margin: '10px 0',
   },
   card: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
     minHeight: 280,
-    p: '11px 0',
-    mb: '25px',
+    padding: '11px 0',
+    marginBottom: '25px',
     backgroundColor: '#2d2e32',
   },
   cardContent: {
-    p: '0 10px',
+    padding: '0 10px',
   },
   category: {
     display: 'block',
     minHeight: '31px',
   },
   title: {
-    pb: '5px',
-    mb: '10px',
+    paddingBottom: '5px',
+    marginBottom: '10px',
     borderBottom: '2px solid #f3c12c',
   },
   progressActions: {
     width: 200,
-    m: '0 auto 15.5px',
+    margin: '0 auto 15.5px',
   },
   buttonsWrapper: {
     display: 'flex',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    p: 0,
+    padding: 0,
   },
   button: {
     width: 100,
@@ -73,20 +91,20 @@ const styles = {
   },
 };
 
-export const Item = ({ item, loading }) => {
-  const [itemNew, setItemNew] = useState(item);
-  const [updatedItem, setUpdatedItem] = useState(null);
-  const [updateCategoryError, setUpdateCategoryError] = useState(false);
-  const [updateTitleError, setUpdateTitleError] = useState(false);
-  const [updateDescriptionError, setUpdateDescriptionError] = useState(false);
-  const [updateWeightError, setUpdateWeightError] = useState(false);
+export const Item = ({ item, loading }:ItemProps) => {
+  const [itemNew, setItemNew] = useState <Partial<ItemModel> | undefined>(item);
+  const [updatedItem, setUpdatedItem] = useState<string | null | undefined>(null);
+  const [updateCategoryError, setUpdateCategoryError] = useState<boolean>(false);
+  const [updateTitleError, setUpdateTitleError] = useState<boolean>(false);
+  const [updateDescriptionError, setUpdateDescriptionError] = useState<boolean>(false);
+  const [updateWeightError, setUpdateWeightError] = useState<boolean>(false);
   const isRemoveGoodsLoading = useSelector(selectIsRemoveLoading);
   const isUpdateGoodsLoading = useSelector(selectIsUpdateLoading);
 
   const dispatch = useDispatch();
 
   const onInputModification = useCallback(
-    (e) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       setItemNew({
         ...itemNew,
         [e.target.name]: e.target.value,
@@ -96,35 +114,39 @@ export const Item = ({ item, loading }) => {
   );
 
   const onRemoveClick = useCallback(() => {
-    dispatch(removeGoodsThunk(item.id));
+    if (item !== undefined) {
+      dispatch(removeGoodsThunk(item.id));
+    }
   }, [dispatch]);
 
   const onEditClick = useCallback(() => {
-    setUpdatedItem(updatedItem === item.id ? null : item.id);
+    setUpdatedItem(updatedItem === item?.id ? null : item?.id);
   }, [updatedItem]);
 
   const onSave = useCallback(() => {
-    if (itemNew.category
-      && itemNew.title
-      && itemNew.description
-      && itemNew.weight) {
-      dispatch(updateGoodsThunk(itemNew));
-      setUpdatedItem(undefined);
-      setUpdateCategoryError(false);
-      setUpdateTitleError(false);
-      setUpdateDescriptionError(false);
-      setUpdateWeightError(false);
+    if (itemNew?.category
+      && itemNew?.title
+      && itemNew?.description
+      && itemNew?.weight) {
+      if (item !== undefined) {
+        dispatch(updateGoodsThunk({ ...itemNew, id: item.id }));
+        setUpdatedItem(undefined);
+        setUpdateCategoryError(false);
+        setUpdateTitleError(false);
+        setUpdateDescriptionError(false);
+        setUpdateWeightError(false);
+      }
     } else {
-      if (itemNew.category === '') {
+      if (itemNew?.category === '') {
         setUpdateCategoryError(true);
       }
-      if (itemNew.title === '') {
+      if (itemNew?.title === '') {
         setUpdateTitleError(true);
       }
-      if (itemNew.description === '') {
+      if (itemNew?.description === '') {
         setUpdateDescriptionError(true);
       }
-      if (itemNew.weight === '') {
+      if (itemNew?.weight === '') {
         setUpdateWeightError(true);
       }
     }
@@ -141,7 +163,7 @@ export const Item = ({ item, loading }) => {
 
   return (
     <div>
-      {item.id === updatedItem ? (
+      {item?.id === updatedItem ? (
         <div className="update-form">
           <TextField
             required
@@ -150,7 +172,7 @@ export const Item = ({ item, loading }) => {
             label="Category"
             variant="filled"
             onChange={onInputModification}
-            value={itemNew.category}
+            value={itemNew?.category}
             error={updateCategoryError}
           />
           <TextField
@@ -160,7 +182,7 @@ export const Item = ({ item, loading }) => {
             label="Title"
             variant="filled"
             onChange={onInputModification}
-            value={itemNew.title}
+            value={itemNew?.title}
             error={updateTitleError}
           />
           <TextField
@@ -170,7 +192,7 @@ export const Item = ({ item, loading }) => {
             label="Description"
             variant="filled"
             onChange={onInputModification}
-            value={itemNew.description}
+            value={itemNew?.description}
             error={updateDescriptionError}
           />
           <TextField
@@ -181,7 +203,7 @@ export const Item = ({ item, loading }) => {
             label="Weight"
             variant="filled"
             onChange={onInputModification}
-            value={itemNew.weight}
+            value={itemNew?.weight}
             error={updateWeightError}
           />
 
@@ -215,7 +237,7 @@ export const Item = ({ item, loading }) => {
                 variant="button"
                 gutterBottom
               >
-                {item.category}
+                {item?.category}
               </Typography>
               <Typography
                 sx={styles.title}
@@ -223,7 +245,7 @@ export const Item = ({ item, loading }) => {
                 component="h2"
                 align="center"
               >
-                {item.title}
+                {item?.title}
               </Typography>
               <Typography
                 color="text.secondary"
@@ -231,13 +253,13 @@ export const Item = ({ item, loading }) => {
                 align="center"
                 gutterBottom
               >
-                {item.description}
+                {item?.description}
               </Typography>
               <Typography color="text.secondary" variant="body1" align="center">
-                {item.weight}
+                {item?.weight}
               </Typography>
             </CardContent>
-            {isRemoveGoodsLoading[item.id] || isUpdateGoodsLoading[item.id] ? (
+            {item !== undefined ? isRemoveGoodsLoading[item.id] || isUpdateGoodsLoading[item.id] ? (
               <LinearProgress sx={styles.progressActions} />
             ) : (
               <CardActions sx={styles.buttonsWrapper}>
@@ -259,21 +281,10 @@ export const Item = ({ item, loading }) => {
                   Remove
                 </Button>
               </CardActions>
-            )}
+            ) : ''}
           </Card>
         </Box>
       )}
     </div>
   );
-};
-
-Item.propTypes = {
-  item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    weight: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    category: PropTypes.string.isRequired,
-  }),
-  loading: PropTypes.bool,
 };

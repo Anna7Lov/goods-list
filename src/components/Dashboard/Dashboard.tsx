@@ -6,9 +6,10 @@ import {
   MenuItem,
   FormControl,
   Select,
+  SelectChangeEvent,
 }
   from '@mui/material';
-import { React, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchAllGoodsThunk } from '../../rdx/goods/thunks';
 import {
@@ -22,21 +23,34 @@ import { filterGoods, sortGoods } from '../../rdx/goods/actions';
 import { NewItemForm } from '../NewItemForm/NewItemForm';
 import { GoodsList } from '../GoodsList/GoodsList';
 
-const styles = {
+interface DashboardStyles {
+  progress: React.CSSProperties;
+  filter: React.CSSProperties;
+  formControl: React.CSSProperties;
+  menuItem: React.CSSProperties;
+}
+
+interface DropDownItem {
+  id: number;
+  value: string;
+  name: string;
+}
+
+const styles: DashboardStyles = {
   progress: {
     width: 300,
-    m: '120px auto 0',
+    margin: '120px auto 0',
   },
   filter: {
     display: 'block',
     width: 350,
-    m: '0 auto 15px',
+    margin: '0 auto 15px',
     backgroundColor: '#2d2e32',
   },
   formControl: {
     display: 'block',
     width: 225,
-    m: '0 auto 30px',
+    margin: '0 auto 30px',
     backgroundColor: '#2d2e32',
   },
   menuItem: {
@@ -44,7 +58,7 @@ const styles = {
   },
 };
 
-const dropDownList = [
+const dropDownList: DropDownItem[] = [
   { id: 1, value: 'title asc', name: 'Title Ascending ↑' },
   { id: 2, value: 'title desc', name: 'Title Descending ↓' },
   { id: 3, value: 'description asc', name: 'Decription Ascending ↑' },
@@ -74,15 +88,15 @@ export const Dashboard = () => {
   }, []);
 
   const onSearch = useCallback(
-    (e) => {
-      dispatch(filterGoods(e.target.value));
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(filterGoods({ filter: e.target.value }));
     },
     [dispatch],
   );
 
   const onSort = useCallback(
-    (e) => {
-      dispatch(sortGoods(e.target.value));
+    (e: SelectChangeEvent) => {
+      dispatch(sortGoods({ sort: e.target.value }));
     },
     [dispatch],
   );
@@ -130,7 +144,7 @@ export const Dashboard = () => {
           color="secondary"
           align="center"
         >
-          {error.message}
+          {error?.message}
         </Typography>
       )}
     </div>

@@ -1,19 +1,26 @@
 import { TextField, Button } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import LinearProgress from '@mui/material/LinearProgress';
-import { React, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addGoodsThunk } from '../../rdx/goods/thunks';
 import { selectIsAddingLoading } from '../../rdx/goods/selectors';
+import { ItemModel } from '../../services/goodsTypes';
 import './NewItemForm.css';
 
-const styles = {
+interface NewItemFormStyles {
+  progress: React.CSSProperties;
+}
+
+type ItemModelNew = Omit<ItemModel, 'id'>;
+
+const styles: NewItemFormStyles = {
   progress: {
     width: 150,
   },
 };
 
-const initialItem = {
+const initialItem: ItemModelNew = {
   category: '',
   title: '',
   description: '',
@@ -21,17 +28,17 @@ const initialItem = {
 };
 
 export const NewItemForm = () => {
-  const [item, setItem] = useState(initialItem);
-  const [categoryError, setCategoryError] = useState(false);
-  const [titleError, setTitleError] = useState(false);
-  const [descriptionError, setDescriptionError] = useState(false);
-  const [weightError, setWeightError] = useState(false);
+  const [item, setItem] = useState<ItemModelNew>(initialItem);
+  const [categoryError, setCategoryError] = useState<boolean>(false);
+  const [titleError, setTitleError] = useState<boolean>(false);
+  const [descriptionError, setDescriptionError] = useState<boolean>(false);
+  const [weightError, setWeightError] = useState<boolean>(false);
   const isAddingLoading = useSelector(selectIsAddingLoading);
 
   const dispatch = useDispatch();
 
   const onInputChange = useCallback(
-    (e) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       setItem({
         ...item,
         [e.target.name]: e.target.value,
